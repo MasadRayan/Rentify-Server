@@ -33,16 +33,55 @@ async function run() {
     const carsCollection = db.collection("cars");
     const usersCollection = db.collection("users");
 
-    app.get ('/cars', async (req, res) => {
+    // Car APIs_______________________________________
+
+    app.get('/cars', async (req, res) => {
       const result = await carsCollection.find().toArray();
       res.send(result);
     })
+
+    // GET all cars OR cars by user email
+    app.get('/myCars', async (req, res) => {
+      const email = req.query.email;
+
+      if (email) {
+        // Get cars by specific user email
+        const query = { userEmail: email };
+        const result = await carsCollection.find(query).sort({ _id: -1 }).toArray();
+        res.send(result);
+      } else {
+        // Get all cars
+        const result = await carsCollection.find().sort({ _id: -1 }).toArray();
+        res.send(result);
+      }
+    });
 
     app.post('/cars', async (req, res) => {
       const car = req.body;
       const result = await carsCollection.insertOne(car);
       res.send(result);
     })
+
+    // DELETE car by ID
+    app.delete('/cars/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await carsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // User APIs_______________________________________
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    })
+
+    app.get('/users', async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    })
+
 
 
     // Send a ping to confirm a successful connection
