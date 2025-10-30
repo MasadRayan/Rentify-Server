@@ -37,6 +37,7 @@ async function run() {
 
     const carsCollection = db.collection("cars");
     const usersCollection = db.collection("users");
+    const driversCollection = db.collection("drivers");
 
     // Custom middleware_______________________________
     // firebase token
@@ -113,6 +114,40 @@ async function run() {
       res.send(result);
     })
 
+    app.patch('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "pending deliver"
+        }
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+
+
+
+    // Driver APIs_______________________________________
+    app.post('/drivers', async (req, res) => {
+      const email = req.body.email;
+
+      const driverExist = await driversCollection.findOne({ email })
+      if (driverExist) {
+        return res.status(409).send({ message: "Driver already exists" });
+      }
+
+      const driver = req.body;
+      const result = await driversCollection.insertOne(driver);
+      res.send(result);
+    })
+
+
+    app.get('/drivers', verifyFBToken, async (req, res) => {
+      const result = await driversCollection.find().toArray();
+      res.send(result);
+    });
 
 
     // Send a ping to confirm a successful connection
